@@ -2,7 +2,7 @@
 
 เว็บแอปพลิเคชันสำหรับทำนายค่าใช้จ่ายรายวัน โดยใช้ **Multiple Linear Regression** จาก scikit-learn ผู้ใช้เก็บข้อมูลพฤติกรรมของตัวเองอย่างน้อย 7 วัน แล้วระบบจะสร้างโมเดลเพื่อทำนายค่าใช้จ่ายในอนาคต
 
-> **วิชา:** AIE322 — Artificial Intelligence Engineering  
+> **วิชา:** AIE322 — Supervised Machine Learning  
 > **เทคโนโลยี:** Python Flask · scikit-learn · SQLite · HTML/CSS/JS  
 > **GitHub:** [github.com/ffourwheel/PredictDaliyCosts](https://github.com/ffourwheel/PredictDaliyCosts)
 
@@ -22,7 +22,7 @@
 
 ```
 PredictCost/
-├── app.py                  # Flask backend + REST API + auto-install deps
+├── app.py                  # Flask backend + REST API + auto-pip install
 ├── model.py                # ML module (train / test / evaluate / save)
 ├── requirements.txt        # Python dependencies
 ├── Procfile                # สำหรับ deploy บน cloud
