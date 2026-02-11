@@ -1,10 +1,21 @@
-"""
-Flask Web Application for Daily Expense Prediction
-"""
+import subprocess, sys, os
+
+def install_requirements():
+    req_path = os.path.join(os.path.dirname(__file__), 'requirements.txt')
+    if os.path.exists(req_path):
+        try:
+            subprocess.check_call(
+                [sys.executable, '-m', 'pip', 'install', '-r', req_path, '-q'],
+                stdout=subprocess.DEVNULL
+            )
+            print("ติดตั้งเรียบร้อยแล้ว")
+        except subprocess.CalledProcessError:
+            print("ติดตั้งไม่สำเร็จ รัน pip install -r requirements.txt เอง")
+
+install_requirements()
 
 from flask import Flask, request, jsonify, render_template
 import sqlite3
-import os
 from datetime import datetime
 from model import train_model, predict, get_model_status, FEATURE_NAMES, TARGET_NAME
 
@@ -13,7 +24,6 @@ DB_PATH = os.path.join(os.path.dirname(__file__), 'data', 'expenses.db')
 
 
 def get_db():
-    """Get database connection."""
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -21,7 +31,6 @@ def get_db():
 
 
 def init_db():
-    """Initialize database tables."""
     conn = get_db()
     conn.execute('''
         CREATE TABLE IF NOT EXISTS daily_records (
@@ -40,8 +49,6 @@ def init_db():
     conn.close()
 
 
-# ---------- Routes ----------
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -49,11 +56,9 @@ def index():
 
 @app.route('/api/record', methods=['POST'])
 def add_record():
-    """Add a new daily record."""
     data = request.json
     try:
         conn = get_db()
-        # Check for duplicate date
         existing = conn.execute(
             'SELECT id FROM daily_records WHERE date = ?', (data['date'],)
         ).fetchone()
@@ -82,7 +87,6 @@ def add_record():
 
 @app.route('/api/used-dates', methods=['GET'])
 def get_used_dates():
-    """Get list of dates that already have records."""
     conn = get_db()
     rows = conn.execute('SELECT date FROM daily_records ORDER BY date').fetchall()
     conn.close()
@@ -92,7 +96,6 @@ def get_used_dates():
 
 @app.route('/api/records', methods=['GET'])
 def get_records():
-    """Get all daily records."""
     conn = get_db()
     rows = conn.execute('SELECT * FROM daily_records ORDER BY date DESC').fetchall()
     conn.close()
@@ -112,7 +115,6 @@ def delete_record(record_id):
 
 @app.route('/api/train', methods=['POST'])
 def train():
-    """Train the model with collected data."""
     conn = get_db()
     rows = conn.execute('SELECT * FROM daily_records ORDER BY date').fetchall()
     conn.close()
@@ -134,7 +136,6 @@ def train():
 
 @app.route('/api/predict', methods=['POST'])
 def make_prediction():
-    """Predict daily expense."""
     data = request.json
     try:
         features = {name: float(data[name]) for name in FEATURE_NAMES}
@@ -148,12 +149,10 @@ def make_prediction():
 
 @app.route('/api/model-status', methods=['GET'])
 def model_status():
-    """Get model status and metrics."""
     status = get_model_status()
     return jsonify(status)
 
 
-# Initialize DB on module load (works with both flask dev server and gunicorn)
 init_db()
 
 if __name__ == '__main__':
