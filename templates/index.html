@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💰 ทำนายค่าใช้จ่ายรายวัน | Daily Expense Predictor</title>
+    <meta name="description"
+        content="ทำนายค่าใช้จ่ายรายวันด้วย Multiple Linear Regression - บันทึกข้อมูล สร้างโมเดล และทำนายค่าใช้จ่ายของคุณ">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <!-- Animated background particles -->
+    <div class="bg-particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <i class="fas fa-wallet"></i>
+            <span>ExpensePredictor</span>
+        </div>
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="record" id="tab-record">
+                <i class="fas fa-pen-to-square"></i>
+                <span>บันทึก</span>
+            </button>
+            <button class="nav-tab" data-tab="history" id="tab-history">
+                <i class="fas fa-clock-rotate-left"></i>
+                <span>ประวัติ</span>
+            </button>
+            <button class="nav-tab" data-tab="train" id="tab-train">
+                <i class="fas fa-brain"></i>
+                <span>สร้างโมเดล</span>
+            </button>
+            <button class="nav-tab" data-tab="predict" id="tab-predict">
+                <i class="fas fa-magic-wand-sparkles"></i>
+                <span>ทำนาย</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- ===== Tab 1: Record Data ===== -->
+        <section class="tab-content active" id="content-record">
+            <div class="section-header">
+                <h1><i class="fas fa-pen-to-square"></i> บันทึกข้อมูลรายวัน</h1>
+                <p class="subtitle">กรอกข้อมูลกิจกรรมและค่าใช้จ่ายของคุณในแต่ละวัน</p>
+            </div>
+
+            <div class="card glass-card form-card">
+                <form id="recordForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="date">
+                                <i class="fas fa-calendar-day"></i> วันที่
+                            </label>
+                            <input type="date" id="date" name="date" required>
+                            <span class="input-hint" id="dateHint">เลือกวันที่ยังไม่เคยบันทึก</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="meals_out">
+                                <i class="fas fa-utensils"></i> จำนวนมื้อที่ทานข้าวนอกบ้าน
+                            </label>
+                            <input type="number" id="meals_out" name="meals_out" min="0" max="5" step="1"
+                                placeholder="0-5 มื้อ" required>
+                            <span class="input-hint">0-5 มื้อ</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="travel_distance">
+                                <i class="fas fa-route"></i> ระยะทางเดินทาง (กม.)
+                            </label>
+                            <input type="number" id="travel_distance" name="travel_distance" min="0" step="0.1"
+                                placeholder="กิโลเมตร" required>
+                            <span class="input-hint">กิโลเมตร</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="shopping_score">
+                                <i class="fas fa-bag-shopping"></i> คะแนนการช้อปปิ้ง/ความบันเทิง
+                            </label>
+                            <input type="number" id="shopping_score" name="shopping_score" min="0" max="10" step="1"
+                                placeholder="0-10 คะแนน" required>
+                            <span class="input-hint">0-10 คะแนน</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="activities">
+                                <i class="fas fa-calendar-check"></i> จำนวนกิจกรรม/นัดหมาย
+                            </label>
+                            <input type="number" id="activities" name="activities" min="0" max="10" step="1"
+                                placeholder="0-10 กิจกรรม" required>
+                            <span class="input-hint">0-10 กิจกรรม</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="sleep_hours">
+                                <i class="fas fa-bed"></i> จำนวนชั่วโมงนอน
+                            </label>
+                            <input type="number" id="sleep_hours" name="sleep_hours" min="0" max="24" step="0.5"
+                                placeholder="0-24 ชั่วโมง" required>
+                            <span class="input-hint">0-24 ชั่วโมง</span>
+                        </div>
+
+                        <div class="form-group full-width expense-group">
+                            <label for="daily_expense">
+                                <i class="fas fa-coins"></i> ค่าใช้จ่ายรวมวันนี้ (บาท)
+                            </label>
+                            <input type="number" id="daily_expense" name="daily_expense" min="0" step="1"
+                                placeholder="บาท" required>
+                            <span class="input-hint">หน่วยเป็นบาท</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg" id="submitRecord">
+                        <i class="fas fa-floppy-disk"></i> บันทึกข้อมูล
+                    </button>
+                </form>
+            </div>
+
+            <!-- Data count indicator -->
+            <div class="card glass-card info-card">
+                <div class="progress-info">
+                    <div class="progress-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <div class="progress-text">
+                        <h3>ข้อมูลที่เก็บแล้ว: <span id="recordCount" class="highlight">0</span> / 7 วัน</h3>
+                        <p id="progressMessage">ต้องเก็บข้อมูลอย่างน้อย 7 วัน เพื่อสร้างโมเดล</p>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== Tab 2: History ===== -->
+        <section class="tab-content" id="content-history">
+            <div class="section-header">
+                <h1><i class="fas fa-clock-rotate-left"></i> ประวัติข้อมูล</h1>
+                <p class="subtitle">ดูและจัดการข้อมูลที่บันทึกไว้ทั้งหมด</p>
+            </div>
+
+            <div class="card glass-card">
+                <div class="table-container">
+                    <table id="historyTable">
+                        <thead>
+                            <tr>
+                                <th>วันที่</th>
+                                <th>มื้อนอกบ้าน</th>
+                                <th>ระยะทาง (กม.)</th>
+                                <th>ช้อปปิ้ง</th>
+                                <th>กิจกรรม</th>
+                                <th>ชม.นอน</th>
+                                <th>ค่าใช้จ่าย (฿)</th>
+                                <th>จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                    <div class="empty-state" id="emptyHistory">
+                        <i class="fas fa-inbox"></i>
+                        <p>ยังไม่มีข้อมูล — เริ่มบันทึกข้อมูลแรกของคุณเลย!</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== Tab 3: Train Model ===== -->
+        <section class="tab-content" id="content-train">
+            <div class="section-header">
+                <h1><i class="fas fa-brain"></i> สร้างโมเดล</h1>
+                <p class="subtitle">Train / Test / Evaluate โมเดล Multiple Linear Regression</p>
+            </div>
+
+            <div class="train-grid">
+                <div class="card glass-card train-action-card">
+                    <div class="train-icon">
+                        <i class="fas fa-gears"></i>
+                    </div>
+                    <h2>Train Model</h2>
+                    <p>ใช้ข้อมูลที่เก็บมาสร้างโมเดล Multiple Linear Regression เพื่อทำนายค่าใช้จ่ายรายวัน</p>
+                    <div class="model-info">
+                        <div class="info-item">
+                            <span class="label">Algorithm:</span>
+                            <span class="value">Multiple Linear Regression</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Train/Test Split:</span>
+                            <span class="value">80% / 20%</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Features:</span>
+                            <span class="value">5 ตัวแปร</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-lg" id="trainBtn" onclick="trainModel()">
+                        <i class="fas fa-play"></i> เริ่ม Training
+                    </button>
+                    <div class="loading-spinner" id="trainSpinner" style="display:none;">
+                        <div class="spinner"></div>
+                        <span>กำลังสร้างโมเดล...</span>
+                    </div>
+                </div>
+
+                <!-- Metrics Cards -->
+                <div class="metrics-panel" id="metricsPanel" style="display:none;">
+                    <h2 class="metrics-title"><i class="fas fa-chart-bar"></i> ผลการประเมินโมเดล</h2>
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-icon r2"><i class="fas fa-bullseye"></i></div>
+                            <div class="metric-label">R² Score (Train)</div>
+                            <div class="metric-value" id="r2Train">-</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon r2"><i class="fas fa-crosshairs"></i></div>
+                            <div class="metric-label">R² Score (Test)</div>
+                            <div class="metric-value" id="r2Test">-</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon mae"><i class="fas fa-ruler"></i></div>
+                            <div class="metric-label">MAE (฿)</div>
+                            <div class="metric-value" id="maeTest">-</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon mse"><i class="fas fa-calculator"></i></div>
+                            <div class="metric-label">MSE</div>
+                            <div class="metric-value" id="mseTest">-</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon rmse"><i class="fas fa-square-root-variable"></i></div>
+                            <div class="metric-label">RMSE (฿)</div>
+                            <div class="metric-value" id="rmseTest">-</div>
+                        </div>
+                    </div>
+
+                    <!-- Coefficients -->
+                    <div class="card glass-card coef-card">
+                        <h3><i class="fas fa-sliders"></i> สัมประสิทธิ์ของโมเดล (Coefficients)</h3>
+                        <div class="coef-grid" id="coefGrid">
+                            <!-- Populated by JS -->
+                        </div>
+                        <div class="intercept-info">
+                            <span>Intercept (ค่าคงที่):</span>
+                            <span id="interceptValue" class="highlight">-</span>
+                        </div>
+                    </div>
+
+                    <div class="card glass-card equation-card">
+                        <h3><i class="fas fa-function"></i> สมการโมเดล</h3>
+                        <p class="equation" id="modelEquation">-</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== Tab 4: Predict ===== -->
+        <section class="tab-content" id="content-predict">
+            <div class="section-header">
+                <h1><i class="fas fa-magic-wand-sparkles"></i> ทำนายค่าใช้จ่าย</h1>
+                <p class="subtitle">กรอกข้อมูลกิจกรรมเพื่อทำนายค่าใช้จ่ายของวันนั้น</p>
+            </div>
+
+            <div class="predict-layout">
+                <div class="card glass-card predict-form-card">
+                    <h2><i class="fas fa-sliders"></i> กรอกข้อมูล</h2>
+                    <form id="predictForm">
+                        <div class="predict-form-grid">
+                            <div class="form-group">
+                                <label for="p_meals_out">
+                                    <i class="fas fa-utensils"></i> จำนวนมื้อทานข้าวนอกบ้าน
+                                </label>
+                                <input type="number" id="p_meals_out" name="meals_out" min="0" max="5" step="1"
+                                    placeholder="0-5" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="p_travel_distance">
+                                    <i class="fas fa-route"></i> ระยะทางเดินทาง (กม.)
+                                </label>
+                                <input type="number" id="p_travel_distance" name="travel_distance" min="0" step="0.1"
+                                    placeholder="กม." required>
+                            </div>
+                            <div class="form-group">
+                                <label for="p_shopping_score">
+                                    <i class="fas fa-bag-shopping"></i> คะแนนช้อปปิ้ง/ความบันเทิง
+                                </label>
+                                <input type="number" id="p_shopping_score" name="shopping_score" min="0" max="10"
+                                    step="1" placeholder="0-10" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="p_activities">
+                                    <i class="fas fa-calendar-check"></i> จำนวนกิจกรรม/นัดหมาย
+                                </label>
+                                <input type="number" id="p_activities" name="activities" min="0" max="10" step="1"
+                                    placeholder="0-10" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="p_sleep_hours">
+                                    <i class="fas fa-bed"></i> จำนวนชั่วโมงนอน
+                                </label>
+                                <input type="number" id="p_sleep_hours" name="sleep_hours" min="0" max="24" step="0.5"
+                                    placeholder="0-24" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-accent btn-lg">
+                            <i class="fas fa-wand-magic-sparkles"></i> ทำนายค่าใช้จ่าย
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card glass-card predict-result-card" id="predictionResult" style="display:none;">
+                    <div class="result-glow"></div>
+                    <div class="result-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <h2>ค่าใช้จ่ายที่ทำนาย</h2>
+                    <div class="result-amount">
+                        <span class="currency">฿</span>
+                        <span class="amount" id="predictedAmount">0</span>
+                    </div>
+                    <p class="result-note">* ผลลัพธ์จาก Multiple Linear Regression Model</p>
+                </div>
+
+                <div class="card glass-card no-model-card" id="noModelWarning" style="display:none;">
+                    <div class="warning-icon">
+                        <i class="fas fa-triangle-exclamation"></i>
+                    </div>
+                    <h2>ยังไม่มีโมเดล</h2>
+                    <p>กรุณาเก็บข้อมูลให้ครบ 7 วัน และสร้างโมเดลก่อนทำนาย</p>
+                    <button class="btn btn-secondary" onclick="switchTab('train')">
+                        <i class="fas fa-brain"></i> ไปสร้างโมเดล
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Toast notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <footer class="footer">
+        <p>💰 Daily Expense Predictor — Multiple Linear Regression | AIE322</p>
+    </footer>
+
+    <script src="/static/script.js"></script>
+</body>
+
+</html>
